@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Help Button</title>
+    <link href="./dist/index.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      const search = location.search.slice(1);
+      const appEl = document.getElementById("app");
+      const ws = new WebSocket("ws://apps.jcgrant.com:8010/ws");
+      if (search === "") {
+        appEl.innerHTML = `
+        <div class="h-screen bg-red-500 text-white flex">
+          <div class="text-9xl font-bold m-auto text-center">HELP</div>
+        </div>`;
+        let gettingHelp = false;
+        appEl.firstElementChild.onclick = () => {
+          if (!gettingHelp) {
+            ws.send("HELP");
+            appEl.firstElementChild.firstElementChild.textContent =
+              "Getting Help :)";
+            appEl.firstElementChild.classList.remove("bg-red-500");
+            appEl.firstElementChild.classList.remove("text-white");
+            appEl.firstElementChild.classList.add("bg-white");
+            appEl.firstElementChild.classList.add("text-red-500");
+          } else {
+            ws.send("STOP");
+            appEl.firstElementChild.firstElementChild.textContent = "HELP";
+            appEl.firstElementChild.classList.add("bg-red-500");
+            appEl.firstElementChild.classList.add("text-white");
+            appEl.firstElementChild.classList.remove("bg-white");
+            appEl.firstElementChild.classList.remove("text-red-500");
+          }
+          gettingHelp = !gettingHelp;
+        };
+      } else {
+        appEl.innerHTML = `
+        <div class="h-screen bg-blue-500 text-white flex">
+          <div class="text-9xl font-bold m-auto">listening...</div>
+        </div>`;
+        let helpInterval;
+        ws.onmessage = ({ data }) => {
+          console.log(data);
+          if (data === "HELP") {
+            helpInterval = setInterval(() => {
+              appEl.firstElementChild.classList.remove("bg-blue-500");
+              appEl.firstElementChild.firstElementChild.textContent = "HELP";
+              if (appEl.firstElementChild.classList.contains("bg-red-500")) {
+                appEl.firstElementChild.classList.remove("bg-red-500");
+                appEl.firstElementChild.classList.remove("text-white");
+                appEl.firstElementChild.classList.add("bg-white");
+                appEl.firstElementChild.classList.add("text-red-500");
+              } else {
+                appEl.firstElementChild.classList.add("bg-red-500");
+                appEl.firstElementChild.classList.add("text-white");
+                appEl.firstElementChild.classList.remove("bg-white");
+                appEl.firstElementChild.classList.remove("text-red-500");
+              }
+            }, 300);
+          } else {
+            clearInterval(helpInterval);
+            appEl.firstElementChild.classList.add("bg-blue-500");
+            appEl.firstElementChild.firstElementChild.textContent =
+              "listening...";
+            appEl.firstElementChild.classList.remove("bg-white");
+            appEl.firstElementChild.classList.remove("text-red-500");
+            appEl.firstElementChild.classList.remove("bg-red-500");
+            appEl.firstElementChild.classList.remove("text-white");
+            appEl.firstElementChild.classList.add("text-white");
+          }
+        };
+      }
+    </script>
+  </body>
+</html>
